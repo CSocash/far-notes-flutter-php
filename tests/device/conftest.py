@@ -1,24 +1,32 @@
-"""Device tests: the real iOS app in the Simulator, driven by Appium. They run only with `pytest --run-device`.
+"""Device tests: the real Flutter app on the iOS Simulator and the Android emulator, driven by Appium.
+They run only with `pytest --run-device`; add `-k ios` or `-k android` for one platform.
 
-Needs Xcode, Appium 3 with the XCUITest driver (`appium driver install xcuitest`) and the iPhone 17
-simulator. Appium is started here if nothing is listening on APPIUM_URL. The app is rebuilt each session
-against the shared test server (port 3100), never the dev server on port 3000.
+iOS needs Xcode, the XCUITest driver (`appium driver install xcuitest`) and the iPhone 17 simulator.
+Android needs Android Studio's SDK, the UiAutomator2 driver (`appium driver install uiautomator2`) and the
+Pixel_10_Pro emulator, which is started here unless an emulator is already running.
+Appium is started here if nothing is listening on APPIUM_URL. Each app is rebuilt once per session against
+the shared test server (port 3100), never the dev server on port 3000.
 """
 
 import json
+import os
 import subprocess
 import time
 import urllib.request
 
 import pytest
 from appium import webdriver
+from appium.options.android import UiAutomator2Options
 from appium.options.ios import XCUITestOptions
 
+from tests.pages.android_app import AndroidApp
 from tests.pages.ios_app import IosApp
+from tests.support import android_app
 from tests.support.ios_app import BUNDLE_ID, build_ios_app, simulator_udid
 
 APPIUM_URL = "http://127.0.0.1:4723"
 SIMULATOR = "iPhone 17"   # not the simulator Xcode runs the app on, so a test run doesn't replace that copy
+ANDROID_AVD = "Pixel_10_Pro"
 
 
 def _appium_is_up():
@@ -35,8 +43,10 @@ def appium_server():
         yield APPIUM_URL
         return
     # --address keeps Appium on this Mac; by default it listens on every network address, without a password.
+    # The UiAutomator2 driver finds adb through ANDROID_HOME, which a Mac doesn't set unless you add it yourself.
     process = subprocess.Popen(["appium", "--address", "127.0.0.1", "--port", APPIUM_URL.rsplit(":", 1)[1],
-                                "--log-level", "warn"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                "--log-level", "warn"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               env={**os.environ, "ANDROID_HOME": str(android_app.SDK)})
     deadline = time.monotonic() + 30
     while not _appium_is_up():
         if process.poll() is not None or time.monotonic() > deadline:
@@ -70,4 +80,39 @@ def ios_app(request, appium_server, ios_simulator, ios_app_path):
     app = IosApp(driver, slowmo_ms=float(request.config.getoption("slowmo") or 0))
     yield app
     app.pause()   # in slow mode, leave the final screen up for a moment
+    driver.quit()
+
+
+@pytest.fixture(scope="session")
+def android_emulator():
+    """The serial of a running emulator. One already running is reused and left running; otherwise
+    ANDROID_AVD is started for the session and shut down afterwards."""
+    serial = android_app.running_emulator()
+    if serial:
+        yield serial
+        return
+    serial, process = android_app.start_emulator(ANDROID_AVD)
+    yield serial
+    subprocess.run([android_app.ADB, "-s", serial, "emu", "kill"], capture_output=True)
+    process.wait(timeout=60)
+
+
+@pytest.fixture(scope="session")
+def android_apk_path(test_server):
+    return android_app.build_android_app(test_server)
+
+
+@pytest.fixture
+def android(request, appium_server, android_emulator, android_apk_path):
+    """A fresh install of the Android app (no saved sign-in), wrapped in the AndroidApp screen object."""
+    android_app.uninstall(android_emulator)
+    options = UiAutomator2Options()
+    options.udid = android_emulator
+    options.app = str(android_apk_path)
+    options.app_package = android_app.APP_PACKAGE
+    options.set_capability("appium:uiautomator2ServerInstallTimeout", 120_000)   # first run installs the server
+    driver = webdriver.Remote(appium_server, options=options)
+    app = AndroidApp(driver, slowmo_ms=float(request.config.getoption("slowmo") or 0))
+    yield app
+    app.pause()
     driver.quit()

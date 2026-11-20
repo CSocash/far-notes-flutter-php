@@ -376,6 +376,25 @@ Generated with the `create-scenarios` skill from the `far-notes-domain` skill (`
 **Business Rule**: business-rules.md › Mobile app clients (bearer token kept in the app); Study items (autosave, date set when covered)
 **Suggested Layer**: Device
 
+### TC-023: On the Android app a covered item is saved and the sign-in survives a relaunch
+**Category**: Happy Path
+**Priority**: P1
+**Preconditions**: The Android app built against the test server (reached from the emulator as `10.0.2.2`) and freshly installed on the Pixel_10_Pro emulator (no saved sign-in). A fresh user registered through the API.
+**Steps**:
+1. Sign in with the user's username and password.
+2. Scroll to and expand "91.103 — Preflight action".
+3. Tap the "Mark 91.103(a) as covered" switch.
+4. Close the app and open it again.
+5. Expand "91.103 — Preflight action".
+
+**Expected Results**:
+- Before step 3 the switch is off (`checked="false"`); after it, it is on (`checked="true"`).
+- The API returns 91.103(a) with `covered: true` and today's date (the emulator uses the Mac's clock and time zone).
+- After the relaunch the tracker opens without the sign-in screen, and 91.103(a) is still covered.
+
+**Business Rule**: business-rules.md › Mobile app clients (bearer token kept in the app); Study items (autosave, date set when covered)
+**Suggested Layer**: Device
+
 ---
 
 ## Business Rules (TC-100 – TC-199)
@@ -2538,13 +2557,13 @@ Generated with the `create-scenarios` skill from the `far-notes-domain` skill (`
 
 | Category | P0 | P1 | P2 | P3 | Total |
 |----------|---:|---:|---:|---:|------:|
-| Happy Path (TC-001+) | 3 | 15 | 3 | 0 | 21 |
+| Happy Path (TC-001+) | 3 | 16 | 3 | 0 | 22 |
 | Business Rule (TC-100+) | 4 | 11 | 15 | 3 | 33 |
 | Security (TC-200+) | 16 | 12 | 3 | 3 | 34 |
 | Negative (TC-300+) | 0 | 7 | 13 | 8 | 28 |
 | Edge Case (TC-400+) | 0 | 4 | 12 | 15 | 31 |
 | UI State (TC-500+) | 0 | 7 | 11 | 14 | 32 |
-| **Total** | **23** | **56** | **57** | **43** | **179** |
+| **Total** | **23** | **57** | **57** | **43** | **180** |
 
 10 scenarios are marked **[Manual/Setup-heavy]**.
 
