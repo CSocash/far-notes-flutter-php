@@ -15,7 +15,8 @@ ThemeData farNotesTheme() {
   return ThemeData(
     colorScheme: scheme,
     scaffoldBackgroundColor: canvas,
-    appBarTheme: const AppBarTheme(backgroundColor: canvas, foregroundColor: ink, elevation: 0, scrolledUnderElevation: 0),
+    appBarTheme:
+        const AppBarTheme(backgroundColor: canvas, foregroundColor: ink, elevation: 0, scrolledUnderElevation: 0),
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
@@ -41,7 +42,8 @@ class Brand extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       ExcludeSemantics(child: Image.asset('assets/aircraft-front-view.png', width: 28, height: 28)),
       const SizedBox(width: 10),
-      Text('FAR NOTES / $suffix', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 1.4, color: ink)),
+      Text('FAR NOTES / $suffix',
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 1.4, color: ink)),
     ]);
   }
 }
@@ -86,7 +88,10 @@ class AuthLayout extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       const Eyebrow('YOUR PERSONAL STUDY LOG'),
                       const SizedBox(height: 12),
-                      Semantics(header: true, child: Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: ink))),
+                      Semantics(
+                          header: true,
+                          child: Text(title,
+                              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: ink))),
                       const SizedBox(height: 8),
                       Text(copy, style: const TextStyle(color: muted, height: 1.5)),
                       const SizedBox(height: 20),

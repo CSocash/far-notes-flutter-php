@@ -1,7 +1,7 @@
 # Azure Pipelines: runs the pytest + Playwright suite on every push and pull request to main.
 # It runs on the self-hosted agent (this Mac) in the Default pool, so it uses the Mac's own
-# Node and Python instead of installing them. Device (Appium) tests are skipped: they only run
-# with --run-device.
+# PHP, Flutter and Python instead of installing them. Device (Appium) tests are skipped: they only
+# run with --run-device.
 
 trigger:
   branches:
@@ -17,10 +17,21 @@ pool:
   name: Default
 
 steps:
+  # The agent runs as a service without your shell profile, so add PHP (php.new) and Flutter to PATH.
   - script: |
-      node --version
+      echo "##vso[task.prependpath]$HOME/.config/herd-lite/bin"
+      echo "##vso[task.prependpath]$HOME/development/flutter/bin"
+    displayName: Add PHP and Flutter to PATH
+
+  - script: |
+      php --version
+      flutter --version
       python3 --version
-    displayName: Show Node and Python versions
+    displayName: Show PHP, Flutter and Python versions
+
+  - script: flutter analyze && flutter test
+    workingDirectory: app
+    displayName: Check and unit-test the Flutter app
 
   - script: python3 -m venv .venv
     displayName: Create Python virtual environment

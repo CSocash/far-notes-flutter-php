@@ -41,7 +41,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final username = await widget.api.signIn(_username.text, _password.text);
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => TrackerScreen(api: widget.api, username: username)));
+      Navigator.of(context)
+          .pushReplacement(MaterialPageRoute(builder: (_) => TrackerScreen(api: widget.api, username: username)));
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error.toString());
@@ -58,33 +59,43 @@ class _LoginScreenState extends State<LoginScreen> {
       copy: 'Sign in to continue your FAA regulations study log.',
       footer: 'Always verify current regulations with official FAA sources.',
       children: [
-        TextField(
-          controller: _username,
-          decoration: const InputDecoration(labelText: 'Username or email'),
-          autocorrect: false,
-          textInputAction: TextInputAction.next,
-          autofillHints: const [AutofillHints.username],
-          onSubmitted: (_) => _passwordFocus.requestFocus(),
+        // Test ids: Android exposes them as resource-id and iOS as the element's name; a text box's label
+        // is only a hint on Android, which Appium can't search by.
+        Semantics(
+          identifier: 'username',
+          child: TextField(
+            controller: _username,
+            decoration: const InputDecoration(labelText: 'Username or email'),
+            autocorrect: false,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.username],
+            onSubmitted: (_) => _passwordFocus.requestFocus(),
+          ),
         ),
         const SizedBox(height: 14),
-        TextField(
-          controller: _password,
-          focusNode: _passwordFocus,
-          decoration: const InputDecoration(labelText: 'Password'),
-          obscureText: true,
-          autofillHints: const [AutofillHints.password],
-          onSubmitted: (_) => _submit(),
+        Semantics(
+          identifier: 'password',
+          child: TextField(
+            controller: _password,
+            focusNode: _passwordFocus,
+            decoration: const InputDecoration(labelText: 'Password'),
+            obscureText: true,
+            autofillHints: const [AutofillHints.password],
+            onSubmitted: (_) => _submit(),
+          ),
         ),
         const SizedBox(height: 14),
         if (_error != null) FormMessage(_error!),
         FilledButton(onPressed: _busy ? null : _submit, child: const Text('Sign in')),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ForgotPasswordScreen(api: widget.api))),
+          onPressed: () =>
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => ForgotPasswordScreen(api: widget.api))),
           child: const Text('Forgot password?'),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreateAccountScreen(api: widget.api))),
+          onPressed: () =>
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreateAccountScreen(api: widget.api))),
           child: const Text('Create an account'),
         ),
       ],

@@ -78,7 +78,9 @@ class FarNotesApi {
     }
     if (response.statusCode == 401) await _saveToken(null);
     if (response.statusCode >= 400) {
-      final error = result is Map && result['error'] is String ? result['error'] as String : 'Request failed (${response.statusCode}).';
+      final error = result is Map && result['error'] is String
+          ? result['error'] as String
+          : 'Request failed (${response.statusCode}).';
       throw ApiException(response.statusCode, error);
     }
     return result;
@@ -96,13 +98,14 @@ class FarNotesApi {
   }
 
   Future<String> signIn(String usernameOrEmail, String password) async {
-    final result = await _request('POST', '/api/auth/login', body: {'username': usernameOrEmail.trim(), 'password': password});
+    final result =
+        await _request('POST', '/api/auth/login', body: {'username': usernameOrEmail.trim(), 'password': password});
     await _saveToken(result['token'] as String);
     return result['username'] as String;
   }
 
-  Future<void> register(String username, String email, String password) =>
-      _request('POST', '/api/auth/register', body: {'username': username.trim(), 'email': email.trim(), 'password': password});
+  Future<void> register(String username, String email, String password) => _request('POST', '/api/auth/register',
+      body: {'username': username.trim(), 'email': email.trim(), 'password': password});
 
   Future<String> forgotPassword(String email) async {
     final result = await _request('POST', '/api/auth/forgot-password', body: {'email': email.trim()});
@@ -128,7 +131,8 @@ class FarNotesApi {
   }
 
   Future<void> saveHeading(String part, Regulation regulation) =>
-      _request('PATCH', '/api/regulations/${regulation.id}${_partQuery(part)}', body: {'regulation': regulation.heading});
+      _request('PATCH', '/api/regulations/${regulation.id}${_partQuery(part)}',
+          body: {'regulation': regulation.heading});
 
   Future<void> saveSubsection(String part, Subsection subsection) =>
       _request('PATCH', '/api/subsections/${subsection.id}${_partQuery(part)}', body: subsection.toPatch());

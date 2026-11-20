@@ -10,7 +10,8 @@ class SaveQueue {
   final _chains = <String, Future<void>>{};
 
   /// Schedules save() for key. With immediate, it runs now instead of after the delay.
-  void queue(String key, Future<void> Function() save, {bool immediate = false, required void Function(Object error) onError}) {
+  void queue(String key, Future<void> Function() save,
+      {bool immediate = false, required void Function(Object error) onError}) {
     _waiting.remove(key)?.timer.cancel();
     void run() => _run(key, save, onError);
     if (immediate) {

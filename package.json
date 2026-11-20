@@ -1,13 +1,10 @@
 {
-  "name": "part-91-study-log",
-  "version": "1.0.0",
+  "name": "far-notes",
+  "version": "2.0.0",
   "private": true,
-  "description": "A local Part 91 regulation study tracker backed by SQLite.",
-  "engines": {
-    "node": ">=22.13.0"
-  },
+  "description": "FAR Notes: a Part 61/91 regulation study tracker. PHP + SQLite server (backend/), Flutter app (app/).",
   "scripts": {
-    "start": "node server.js",
-    "setup-user": "node setup-user.js"
+    "start": "sh backend/start.sh",
+    "setup-user": "php backend/setup-user.php"
   }
 }

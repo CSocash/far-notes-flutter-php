@@ -6,11 +6,13 @@ Section and subsection citations link to their corresponding eCFR text and open 
 
 The built-in Part 61 and Part 91 section headings are protected and cannot be edited. User-added headings remain editable. Section deletion is not available.
 
+The website and the iOS/Android app share one server: PHP with SQLite in `backend/`. The app is written in Flutter (`app/`, see its README).
+
 ## Run the website
 
-1. Install Node.js 22.13 or later.
-2. From this project folder, create the initial account once by setting `INITIAL_PASSWORD` and running `npm run setup-user`. The default account name and email are `VMC43` and `VMC43@test.com`; the password is never included in the source code and is stored as a salted hash.
-3. Run `npm start`.
+1. Install PHP 8.2 or later with the `pdo_sqlite` and `sodium` extensions (on a Mac, `/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.4)"` installs both).
+2. From this project folder, create the initial account once by setting `INITIAL_PASSWORD` and running `npm run setup-user` (or `php backend/setup-user.php`). The default account name and email are `VMC43` and `VMC43@test.com`; the password is never included in the source code and is stored as a salted hash.
+3. Run `npm start` (or `sh backend/start.sh`). `PORT` and `HOST` change the address, as before.
 4. Open [http://127.0.0.1:3000](http://127.0.0.1:3000), create another account from the sign-in page if needed, and sign in with a username or email and password.
 5. Keep the terminal window running while using the tracker.
 
@@ -25,4 +27,3 @@ When the subsection tracking is first enabled, existing section-level coverage, 
 This is a local app intended for use on one computer. The starter lists are study aids, not complete or authoritative reproductions of Parts 61 or 91; verify current regulations with official FAA sources.
 
 Subsection identifiers and available paragraph headings are based on the eCFR Title 14 snapshot dated June 1, 2026, stored in `regulation-subsections.json` ([Part 61](https://www.ecfr.gov/api/versioner/v1/full/2026-06-01/title-14.xml?part=61), [Part 91](https://www.ecfr.gov/api/versioner/v1/full/2026-06-01/title-14.xml?part=91)). The app does not automatically refresh this catalog; confirm current subsection structure and legal text with official FAA sources.
-# far-notes

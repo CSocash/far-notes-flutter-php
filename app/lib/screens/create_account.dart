@@ -64,7 +64,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       footer: 'Your account has a separate study log. Passwords are stored as salted hashes.',
       children: _created
           ? [
-              const FormMessage('Account created successfully. Return to the sign-in screen to sign in.', isError: false),
+              const FormMessage('Account created successfully. Return to the sign-in screen to sign in.',
+                  isError: false),
               FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Back to sign in')),
             ]
           : [

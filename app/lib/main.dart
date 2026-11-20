@@ -51,7 +51,8 @@ class _StartScreenState extends State<StartScreen> {
     }
     if (!mounted) return;
     Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (_) => username == null ? LoginScreen(api: widget.api) : TrackerScreen(api: widget.api, username: username),
+      builder: (_) =>
+          username == null ? LoginScreen(api: widget.api) : TrackerScreen(api: widget.api, username: username),
     ));
   }
 

@@ -2,7 +2,13 @@
 // test/core_test.dart checks it with the same cases the website relies on.
 
 class Subsection {
-  Subsection({required this.id, required this.code, required this.title, required this.covered, required this.date, required this.notes});
+  Subsection(
+      {required this.id,
+      required this.code,
+      required this.title,
+      required this.covered,
+      required this.date,
+      required this.notes});
 
   factory Subsection.fromJson(Map<String, dynamic> json) => Subsection(
         id: json['id'] as int,
@@ -30,7 +36,9 @@ class Regulation {
         id: json['id'] as int,
         heading: json['regulation'] as String,
         isLocked: json['isLocked'] as bool,
-        subsections: [for (final item in json['subsections'] as List) Subsection.fromJson(item as Map<String, dynamic>)],
+        subsections: [
+          for (final item in json['subsections'] as List) Subsection.fromJson(item as Map<String, dynamic>)
+        ],
       );
 
   final int id;
@@ -69,7 +77,8 @@ List<Subsection> matchingSubsections(Regulation regulation, String query, Covera
       CoverageFilter.covered => subsection.covered,
       CoverageFilter.uncovered => !subsection.covered,
     };
-    final text = '${referenceFor(regulation.heading, subsection.code)} ${subsection.title} ${subsection.notes}'.toLowerCase();
+    final text =
+        '${referenceFor(regulation.heading, subsection.code)} ${subsection.title} ${subsection.notes}'.toLowerCase();
     return matchesFilter && (query.isEmpty || regulationMatches || text.contains(query));
   }).toList();
 }

@@ -75,7 +75,8 @@ class _TrackerScreenState extends State<TrackerScreen> {
   }
 
   void _goToSignIn() {
-    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => LoginScreen(api: widget.api)), (_) => false);
+    Navigator.of(context)
+        .pushAndRemoveUntil(MaterialPageRoute(builder: (_) => LoginScreen(api: widget.api)), (_) => false);
   }
 
   void _toast(String message) {
@@ -207,7 +208,8 @@ class _TrackerScreenState extends State<TrackerScreen> {
     final summary = summarize(allItems);
     final query = _query;
     final groups = [
-      for (final regulation in _regulations) (regulation: regulation, items: matchingSubsections(regulation, query, _filter)),
+      for (final regulation in _regulations)
+        (regulation: regulation, items: matchingSubsections(regulation, query, _filter)),
     ].where((group) => group.items.isNotEmpty).toList();
     final visibleCount = groups.fold<int>(0, (count, group) => count + group.items.length);
 
@@ -248,7 +250,8 @@ class _TrackerScreenState extends State<TrackerScreen> {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
             sliver: SliverToBoxAdapter(
-              child: Text('Showing $visibleCount of ${summary.total} study items', style: const TextStyle(color: muted, fontSize: 12)),
+              child: Text('Showing $visibleCount of ${summary.total} study items',
+                  style: const TextStyle(color: muted, fontSize: 12)),
             ),
           ),
         ]),
@@ -295,17 +298,21 @@ class _TrackerScreenState extends State<TrackerScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              const Text('OVERALL PROGRESS', style: TextStyle(color: muted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
+              const Text('OVERALL PROGRESS',
+                  style: TextStyle(color: muted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
               const Spacer(),
-              Text('${summary.progress}%', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: ink)),
+              Text('${summary.progress}%',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: ink)),
             ]),
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(value: summary.progress / 100, minHeight: 6, color: green, backgroundColor: greenSoft),
+              child: LinearProgressIndicator(
+                  value: summary.progress / 100, minHeight: 6, color: green, backgroundColor: greenSoft),
             ),
             const SizedBox(height: 8),
-            Text('${summary.covered} of ${summary.total} study items covered', style: const TextStyle(color: muted, fontSize: 12)),
+            Text('${summary.covered} of ${summary.total} study items covered',
+                style: const TextStyle(color: muted, fontSize: 12)),
           ]),
         ),
       ),
@@ -357,10 +364,13 @@ class _TrackerScreenState extends State<TrackerScreen> {
       child: Column(children: [
         const Icon(Icons.search_off, color: muted, size: 32),
         const SizedBox(height: 8),
-        Text(failed ? 'Database connection unavailable' : 'No study items found', style: const TextStyle(fontWeight: FontWeight.w700, color: ink)),
+        Text(failed ? 'Database connection unavailable' : 'No study items found',
+            style: const TextStyle(fontWeight: FontWeight.w700, color: ink)),
         const SizedBox(height: 4),
         Text(
-          failed ? 'Start the server, then pull down or switch parts to try again.' : 'Try another search, or add a regulation section to your list.',
+          failed
+              ? 'Start the server, then pull down or switch parts to try again.'
+              : 'Try another search, or add a regulation section to your list.',
           textAlign: TextAlign.center,
           style: const TextStyle(color: muted),
         ),
@@ -404,14 +414,18 @@ class _TrackerScreenState extends State<TrackerScreen> {
             if (!regulation.isLocked)
               TextButton(
                 onPressed: () => _editHeading(regulation),
-                child: Semantics(label: 'Edit section heading ${regulation.heading}', excludeSemantics: true, child: const Text('Edit')),
+                child: Semantics(
+                    label: 'Edit section heading ${regulation.heading}',
+                    excludeSemantics: true,
+                    child: const Text('Edit')),
               ),
             Padding(
               padding: const EdgeInsets.only(right: 14),
               child: Semantics(
                 label: '${sectionSummary.covered}/${sectionSummary.total} covered',
                 excludeSemantics: true,
-                child: Text('${sectionSummary.covered}/${sectionSummary.total}', style: const TextStyle(color: muted, fontSize: 12)),
+                child: Text('${sectionSummary.covered}/${sectionSummary.total}',
+                    style: const TextStyle(color: muted, fontSize: 12)),
               ),
             ),
           ]),
@@ -520,7 +534,10 @@ class _SubsectionTileState extends State<_SubsectionTile> {
             ),
           ),
           if (subsection.date.isNotEmpty)
-            IconButton(tooltip: 'Clear date for $reference', icon: const Icon(Icons.close, size: 18), onPressed: widget.onClearDate),
+            IconButton(
+                tooltip: 'Clear date for $reference',
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: widget.onClearDate),
         ]),
         const SizedBox(height: 8),
         Semantics(

@@ -45,7 +45,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return AuthLayout(
       title: 'Reset your password.',
-      copy: 'Enter the email address on your account. A one-time reset link will be printed in the local server terminal.',
+      copy:
+          'Enter the email address on your account. A one-time reset link will be printed in the local server terminal.',
       children: [
         TextField(
           controller: _email,
