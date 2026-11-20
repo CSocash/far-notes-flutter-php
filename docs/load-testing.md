@@ -6,7 +6,7 @@
 
 Notes from setting up the first load test for FAR Notes with [Locust](https://locust.io), a Python load testing tool. The script is `tests/load/locustfile.py`.
 
-The app server is Node (`server.js`), but load testing only sends HTTP requests, so the server's language doesn't matter. Locust fits because the rest of the test suite is Python.
+The app server is PHP (`backend/router.php` under `php -S`), but load testing only sends HTTP requests, so the server's language doesn't matter. Locust fits because the rest of the test suite is Python.
 
 ## 1. What load testing measures
 
@@ -122,7 +122,7 @@ def on_start(self):
 - `json=` turns the dict into a JSON body and sets `Content-Type: application/json`.
 - `example.test` is reserved for testing, so it can never be a real address.
 - After login, `self.client` stores the `study_session` cookie and sends it on every later request, the same way a browser does. That's how the regulation calls get past the 401 check.
-- No `Origin` header is sent. That's allowed: `isAllowedOrigin` in `server.js` only blocks a **foreign** origin.
+- No `Origin` header is sent. That's allowed: `is_allowed_origin` in `backend/router.php` only blocks a **foreign** origin.
 - The last two lines fetch this user's Part 91 list and collect every subsection id into one flat list. Written as a normal loop:
 
   ```python
@@ -212,6 +212,8 @@ The GET tasks always hit the same URL, so each gets one row. The PATCH has the i
 
 ### First baseline (2026-11-06, 10 users, ramp up 2/s, 30 s, headless)
 
+Measured against the original Node server (`server.js`), before the PHP rewrite. Rerun it before comparing PHP numbers with these.
+
 | Request | Count | Median | 95th percentile |
 |---|---|---|---|
 | POST /api/auth/register | 10 | 36 ms | 42 ms |
@@ -227,7 +229,7 @@ The GET tasks always hit the same URL, so each gets one row. The PATCH has the i
 
 - **The task mix came close to the weights:** about 56/16/28 against a target of 50/20/30. It's random, so short runs drift a little.
 - **RPS matched the estimate** (10 users with about 2 seconds of think time ≈ 5 per second).
-- **register and login are 5 to 10 times slower than everything else.** That's intended. `server.js` hashes passwords with scrypt, which is deliberately slow so stolen hashes are hard to crack. Node runs async scrypt on a small pool of worker threads (4 by default), so logins queue up when many users arrive at once. This is the first thing expected to slow down as users increase.
+- **register and login are 5 to 10 times slower than everything else.** That's intended. The server hashes passwords with scrypt, which is deliberately slow so stolen hashes are hard to crack. Node ran scrypt on a pool of 4 worker threads; under PHP each hash holds one of the `php -S` workers (`PHP_CLI_SERVER_WORKERS`, 4 by default) until it finishes, so logins queue up, and also hold up other requests, when many users arrive at once. This is the first thing expected to slow down as users increase.
 - **Response size matters too.** The Part 91 list is about **45 KB** and Part 61 about **33 KB**, because every GET returns the whole list with all subsections. That's fine on a laptop, but on a slow phone connection size can matter more than server speed. Load testing isn't only about time.
 - **A run with 1 user** only shows one register and one login, and might not include a PATCH at all, since saving is only picked 30% of the time.
 
