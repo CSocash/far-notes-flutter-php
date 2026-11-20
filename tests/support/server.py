@@ -1,6 +1,7 @@
 """Start and stop FAR Notes server processes for tests, always against a throwaway database."""
 
 import os
+import signal
 import socket
 import subprocess
 import time
@@ -10,6 +11,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TEST_DATA = ROOT / ".test-data"
+# Which backend the tests start: "php" (backend/start.sh, the default) or "node" (the original server.js),
+# so the same tests can show the two behave the same. Set FAR_NOTES_SERVER=node to use the old one.
+SERVER_COMMANDS = {"php": ["sh", "backend/start.sh"], "node": ["node", "server.js"]}
+
+
+def server_command():
+    name = os.environ.get("FAR_NOTES_SERVER", "php")
+    if name not in SERVER_COMMANDS:
+        raise RuntimeError(f"FAR_NOTES_SERVER must be one of {', '.join(SERVER_COMMANDS)}, not {name!r}")
+    return SERVER_COMMANDS[name]
 
 
 def is_up(base_url):
@@ -49,16 +60,22 @@ class ServerProcess:
             "FAR_NOTES_DB": str(self.db_path),
             "FAR_NOTES_DISABLE_RATE_LIMIT": "1" if rate_limit_disabled else "",
         }
-        self.process = subprocess.Popen(
-            ["node", "server.js"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
-        )
+        # Output goes to a file, not a pipe: PHP's built-in server logs every request, and once an unread
+        # pipe fills up its workers block on that write and every request hangs.
+        self.log_path = self.db_path.with_suffix(".log")
+        self.log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.log_path, "w") as log:
+            self.process = subprocess.Popen(
+                server_command(), cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
+                start_new_session=True,  # its own process group, so stop() also ends PHP's worker processes
+            )
         self._wait_until_ready()
 
     def _wait_until_ready(self, timeout=15):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             if self.process.poll() is not None:
-                raise RuntimeError(f"Server on port {self.port} exited early:\n{self.process.stdout.read()}")
+                raise RuntimeError(f"Server on port {self.port} exited early:\n{self.log_path.read_text()}")
             if is_up(self.base_url):
                 return
             time.sleep(0.1)  # Polling the process start-up, not inside a test.
@@ -66,11 +83,13 @@ class ServerProcess:
         raise RuntimeError(f"Server on port {self.port} did not start within {timeout}s")
 
     def stop(self, remove_db=False):
-        self.process.terminate()
         try:
+            os.killpg(self.process.pid, signal.SIGTERM)
             self.process.wait(timeout=5)
         except subprocess.TimeoutExpired:
-            self.process.kill()
+            os.killpg(self.process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass  # already gone
         if remove_db:
             self._remove_db()
 
