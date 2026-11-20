@@ -340,22 +340,8 @@ Generated with the `create-scenarios` skill from the `far-notes-domain` skill (`
 **Business Rule**: api-reference.md › Mobile app clients
 **Suggested Layer**: API
 
-### TC-021: In app mode the pages use the bearer token and bundled links
-**Category**: Happy Path
-**Priority**: P1
-**Preconditions**: The login page with `window.FAR_NOTES_CONFIG` set (as `mobile/www/config.js` does). The API is stubbed.
-**Steps**:
-1. Open the login page.
-2. Sign in.
-3. Let the tracker load.
-
-**Expected Results**:
-- "Create an account" links to `create-account.html`, not `/create-account`.
-- The login request carries `X-Far-Notes-Client: app`.
-- After sign-in the app opens `index.html`, and its `/api/auth/me` request carries `Authorization: Bearer <the token from the login response>`.
-
-**Business Rule**: SKILL.md › Architecture: api-client.js app mode
-**Suggested Layer**: Component
+### TC-021: (Retired) In app mode the pages use the bearer token and bundled links
+**Retired 2026-11-20** with the Capacitor app. It tested `api-client.js` app mode, which only the Capacitor app used; the Flutter app calls the server itself, and its bearer-token sign-in is covered by TC-020 and TC-227 to TC-233 (API) and TC-022 / TC-023 (devices). The number is kept so later numbers don't shift.
 
 ### TC-022: On the iOS app a covered item is saved and the sign-in survives a relaunch
 **Category**: Happy Path
@@ -1140,14 +1126,16 @@ Generated with the `create-scenarios` skill from the `far-notes-domain` skill (`
 **Priority**: P0
 **Preconditions**: A fresh user, signed in. Repeat while signed out.
 **Steps**: Request each of these:
-1. `/server.js`
-2. `/setup-user.js`
-3. `/package.json`
-4. `/regulation-subsections.json`
-5. `/data/part91.sqlite`
-6. `/../server.js`
-7. `/%2e%2e/server.js`
-8. `/.git/config`
+1. `/backend/router.php`
+2. `/backend/database.php`
+3. `/backend/setup-user.php`
+4. `/backend/start.sh`
+5. `/package.json`
+6. `/regulation-subsections.json`
+7. `/data/part91.sqlite`
+8. `/../backend/router.php`
+9. `/%2e%2e/backend/router.php`
+10. `/.git/config`
 
 **Expected Results**: Each returns 404 `{ error: "Not found." }` and never the file contents.
 **Business Rule**: SKILL.md › Architecture: serveStatic allowlist
@@ -2557,13 +2545,15 @@ Generated with the `create-scenarios` skill from the `far-notes-domain` skill (`
 
 | Category | P0 | P1 | P2 | P3 | Total |
 |----------|---:|---:|---:|---:|------:|
-| Happy Path (TC-001+) | 3 | 16 | 3 | 0 | 22 |
+| Happy Path (TC-001+) | 3 | 15 | 3 | 0 | 21 |
 | Business Rule (TC-100+) | 4 | 11 | 15 | 3 | 33 |
 | Security (TC-200+) | 16 | 12 | 3 | 3 | 34 |
 | Negative (TC-300+) | 0 | 7 | 13 | 8 | 28 |
 | Edge Case (TC-400+) | 0 | 4 | 12 | 15 | 31 |
 | UI State (TC-500+) | 0 | 7 | 11 | 14 | 32 |
-| **Total** | **23** | **57** | **57** | **43** | **180** |
+| **Total** | **23** | **56** | **57** | **43** | **179** |
+
+Retired scenarios (TC-021) are not counted.
 
 10 scenarios are marked **[Manual/Setup-heavy]**.
 

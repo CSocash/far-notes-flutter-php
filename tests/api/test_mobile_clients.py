@@ -1,4 +1,5 @@
-"""The API as the Capacitor app (mobile/) uses it: bearer tokens from app origins, plus CORS."""
+"""The API as an app client uses it: bearer tokens, app origins (FAR_NOTES_APP_ORIGINS, by default the old
+Capacitor app's) and CORS. The Flutter app signs in the same way, with X-Far-Notes-Client: app and a bearer token."""
 
 import re
 import secrets

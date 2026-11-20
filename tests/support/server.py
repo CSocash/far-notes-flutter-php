@@ -11,16 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TEST_DATA = ROOT / ".test-data"
-# Which backend the tests start: "php" (backend/start.sh, the default) or "node" (the original server.js),
-# so the same tests can show the two behave the same. Set FAR_NOTES_SERVER=node to use the old one.
-SERVER_COMMANDS = {"php": ["sh", "backend/start.sh"], "node": ["node", "server.js"]}
-
-
-def server_command():
-    name = os.environ.get("FAR_NOTES_SERVER", "php")
-    if name not in SERVER_COMMANDS:
-        raise RuntimeError(f"FAR_NOTES_SERVER must be one of {', '.join(SERVER_COMMANDS)}, not {name!r}")
-    return SERVER_COMMANDS[name]
+# The PHP server: runs the migrations, then php -S with backend/router.php.
+SERVER_COMMAND = ["sh", "backend/start.sh"]
 
 
 def is_up(base_url):
@@ -66,7 +58,7 @@ class ServerProcess:
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.log_path, "w") as log:
             self.process = subprocess.Popen(
-                server_command(), cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
+                SERVER_COMMAND, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
                 start_new_session=True,  # its own process group, so stop() also ends PHP's worker processes
             )
         self._wait_until_ready()

@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-FAA Regulations Study Log: a local, single-machine study tracker for Part 61 and Part 91 regulations. This repo is the PHP + Flutter rewrite of the original Node/Capacitor app, kept to the same API contract, rules and page labels so the same pytest suite proves both.
+FAA Regulations Study Log: a local, single-machine study tracker for Part 61 and Part 91 regulations. This repo is the PHP + Flutter rewrite of the original Node/Capacitor app (still in the upstream repo `far-notes-playwright-agentic`), kept to the same API contract, rules and page labels, so the same pytest suite proved both before the Node code was removed.
 
 - **Server:** plain PHP (8.2+, no framework, no Composer) in `backend/`, with PDO SQLite and libsodium, run by PHP's built-in web server (`php -S`). PHP is installed with php.new at `~/.config/herd-lite/bin`.
 - **Website:** vanilla HTML/CSS/JS with no build step, at the repo root, served by the PHP router.
 - **App:** Flutter (3.50, Material from `package:material_ui`) for iOS and Android in `app/`. Flutter is at `~/development/flutter/bin`.
-- The old Node server (`server.js`, `setup-user.js`, `lib/`) and Capacitor app (`mobile/`) are still in the repo until the rewrite is merged; `FAR_NOTES_SERVER=node` runs the tests against `server.js`.
+- The `.claude/skills/` docs and the "Business Rule: server.js ›" labels in `docs/test-scenarios.md` still name the old Node code; the PHP equivalents are in `backend/router.php` (camelCase names became snake_case, e.g. `isAllowedOrigin` → `is_allowed_origin`).
 
 ## Commands
 
@@ -28,7 +28,7 @@ FAA Regulations Study Log: a local, single-machine study tracker for Part 61 and
   - Allure report: `.venv/bin/pytest --alluredir=allure-results --clean-alluredir`, then `npx allure@3.22.1 generate allure-results` and `npx allure@3.22.1 open allure-report` (plain `npx allure` runs an old Allure 2 install).
   - Load tests use Locust (`tests/load/locustfile.py`, not collected by pytest). Install with `.venv/bin/pip install -r requirements-load.txt`. Start a throwaway server with `FAR_NOTES_DB=.test-data/load.sqlite FAR_NOTES_DISABLE_RATE_LIMIT=1 PORT=3300 npm start`, then run `.venv/bin/locust -f tests/load/locustfile.py --host http://127.0.0.1:3300` (web UI on http://localhost:8089, or add `--headless -u 10 -r 2 -t 30s`). Never point it at port 3000.
   - The one exception is unit tests for the JavaScript helpers. They use Node's built-in runner, `node --test tests/unit` (none written yet).
-  - A session fixture in `tests/conftest.py` starts its own server (`backend/start.sh`; `FAR_NOTES_SERVER=node` for `server.js`) on port 3100 with `FAR_NOTES_DB=.test-data/far-notes-test.sqlite` and `FAR_NOTES_DISABLE_RATE_LIMIT=1`, so tests never touch `data/part91.sqlite`. Its output goes to `.test-data/*.log`, never an unread pipe: `php -S` logs every request and blocks when a pipe fills.
+  - A session fixture in `tests/conftest.py` starts its own server (`backend/start.sh`) on port 3100 with `FAR_NOTES_DB=.test-data/far-notes-test.sqlite` and `FAR_NOTES_DISABLE_RATE_LIMIT=1`, so tests never touch `data/part91.sqlite`. Its output goes to `.test-data/*.log`, never an unread pipe: `php -S` logs every request and blocks when a pipe fills.
   - `--base-url` points the tests at another server (reused if it answers; a remote one must already be running). Port 3000, the dev server with the real `data/part91.sqlite`, is refused unless you add `--allow-dev-server`.
   - Test browsers stay offline: Chromium runs with its sandbox on, and every request not to the server under test (Google Fonts, eCFR) is blocked. A context a test creates itself with `browser.new_context` needs `block_outside_requests` from `tests/support/network.py`.
   - Test conventions are in the `playwright-best-practices` skill.
@@ -40,7 +40,7 @@ FAA Regulations Study Log: a local, single-machine study tracker for Part 61 and
 - `router.php` — the router for `php -S`. Every request goes through it, so the built-in server never serves a file from disk on its own. Handlers throw `HttpError(status, message)`, answered as `{"error": message}`; anything else is a logged 500.
 - `database.php` — `open_database()` (PDO, `busy_timeout` 5000, foreign keys on), the `rows`/`row`/`run` query helpers, the subsection catalog, `create_starter_regulations_for_user` and `migrate()`.
 - `migrate.php` — runs `migrate()` once per server start (PHP keeps nothing between requests, so start-up work can't live in the router).
-- `passwords.php` — scrypt through libsodium (`sodium_crypto_pwhash_scryptsalsa208sha256`, opslimit 524288 = N 16384, r 8, p 1, 64-byte key, 32-character hex salt), identical to the Node server's hashes.
+- `passwords.php` — scrypt through libsodium (`sodium_crypto_pwhash_scryptsalsa208sha256`, opslimit 524288 = N 16384, r 8, p 1, 64-byte key, 32-character hex salt), identical to the old Node server's hashes, so its accounts still sign in.
 - `validation.php` — `is_iso_date`, `check_username`, `check_email`, `check_password`, each returning the client error message or `null`.
 - `starter-regulations.php` — the built-in starter headings (`STARTER_REGULATIONS['91' | '61']`).
 - `setup-user.php`, `start.sh`.
@@ -54,7 +54,7 @@ FAA Regulations Study Log: a local, single-machine study tracker for Part 61 and
 **Shared pure logic** (no DOM, network or globals, so `node --test` can unit-test it):
 - `app-core.js`: `sectionNumber`, `ecfrUrl`, `referenceFor`, `normalizeQuery`, `matchingSubsections(regulation, query, filter)`, `summarize` and `localDate(now)`. It's a classic script wrapped in a function. In the browser it sets `window.FarNotesCore`, which `app.js` reads (`index.html` loads it first), and under Node it exports the same object with `module.exports`.
 
-**Website frontend:** every page loads `api-client.js` first and makes requests and redirects through `FarNotesApi.fetch` / `FarNotesApi.goTo` (never bare `fetch` or `location.replace`); its app mode served the old Capacitor app. Each HTML page has its own script (`login.js`, `create-account.js`, `forgot-password.js`, `reset-password.js`). `app.js` drives the main tracker: it loads a part via `apiRequest` (which redirects to `/login` on 401), renders section rows and subsection rows from `<template>` elements in `index.html`, links citations to eCFR, and autosaves edits through `queueSave` → `persistItem` (350 ms debounce, with one serialized promise queue per item so PATCHes don't race).
+**Website frontend:** every page loads `api-client.js` first and makes requests and redirects through `FarNotesApi.fetch` / `FarNotesApi.goTo` (never bare `fetch` or `location.replace`). Each HTML page has its own script (`login.js`, `create-account.js`, `forgot-password.js`, `reset-password.js`). `app.js` drives the main tracker: it loads a part via `apiRequest` (which redirects to `/login` on 401), renders section rows and subsection rows from `<template>` elements in `index.html`, links citations to eCFR, and autosaves edits through `queueSave` → `persistItem` (350 ms debounce, with one serialized promise queue per item so PATCHes don't race).
 
 **Flutter app (`app/lib`):** `core.dart` ports `app-core.js` (same names and behavior; unit tests in `app/test`), `api.dart` calls the server with `X-Far-Notes-Client: app` and keeps the bearer token in `shared_preferences`, `save_queue.dart` autosaves like `queueSave` (350 ms debounce, one serialized queue per item), and `screens/` holds sign-in, create account, forgot password and the tracker. Keep its accessibility labels identical to the website's; the Appium page objects (`tests/pages/ios_app.py`, `tests/pages/android_app.py`) depend on them. App id: `com.farnotes.studylog`. Plain `http` is allowed only to local addresses (iOS `NSAllowsLocalNetworking`, Android `network_security_config.xml`).
 

@@ -60,7 +60,8 @@ function header_value(string $name): string
     return is_string($value) ? $value : '';
 }
 
-/** Origins of the app shells: the Capacitor app used these, and the Flutter app sends one of them too. */
+/** Origins treated as the app: they get CORS headers and authenticate only by bearer token. The defaults are
+ *  the old Capacitor app's origins. The Flutter app sends no Origin header (native HTTP isn't a browser). */
 function app_origins(): array
 {
     $configured = getenv('FAR_NOTES_APP_ORIGINS');

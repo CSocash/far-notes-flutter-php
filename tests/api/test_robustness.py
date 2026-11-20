@@ -4,16 +4,18 @@ from tests.support.regulations import create_section, find_subsection, get_secti
 
 NOT_FOUND = {"error": "Not found."}
 
-# Source files, the catalog, the real database, git internals and traversal attempts.
-# The client normalizes "/../" and "/%2e%2e/" to "/server.js"; the server must still refuse it.
+# Server source files, the catalog, the real database, git internals and traversal attempts.
+# The client normalizes "/../" and "/%2e%2e/" to "/backend/router.php"; the server must still refuse it.
 FORBIDDEN_PATHS = [
-    "/server.js",
-    "/setup-user.js",
+    "/backend/router.php",
+    "/backend/database.php",
+    "/backend/setup-user.php",
+    "/backend/start.sh",
     "/package.json",
     "/regulation-subsections.json",
     "/data/part91.sqlite",
-    "/../server.js",
-    "/%2e%2e/server.js",
+    "/../backend/router.php",
+    "/%2e%2e/backend/router.php",
     "/.git/config",
 ]
 
