@@ -1,6 +1,8 @@
+"""State-changing requests from a foreign Origin are refused with 403 and change nothing."""
+
 import pytest
 
-from tests.support.regulations import create_section, find_section, find_subsection, get_sections, patch_subsection
+from tests.support.regulations import create_section, find_section, find_subsection, get_sections
 from tests.support.users import unique_id
 
 EVIL = {"Origin": "http://evil.example"}
@@ -52,7 +54,9 @@ def _patch_section(api, user):
 def _patch_subsection(api, user):
     item = find_subsection(get_sections(api, "91"), "91.103(a)")
     res = api.patch(f"/api/subsections/{item['id']}?part=91", headers=EVIL, data={"covered": True, "notes": "pwned"})
-    after = lambda: find_subsection(get_sections(api, "91"), "91.103(a)")
+    def after():
+        return find_subsection(get_sections(api, "91"), "91.103(a)")
+
     return res, lambda: after()["covered"] is False and after()["notes"] == ""
 
 

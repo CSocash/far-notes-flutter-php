@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case \"$f\" in *.py) \"$CLAUDE_PROJECT_DIR\"/.venv/bin/ruff check --quiet --output-format concise \"$f\" >&2 || exit 2;; esac; }",
+            "statusMessage": "Linting with Ruff..."
+          }
+        ]
+      }
+    ]
+  }
+}

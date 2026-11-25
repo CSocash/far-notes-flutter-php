@@ -39,6 +39,11 @@ steps:
   - script: .venv/bin/pip install -r requirements-dev.txt
     displayName: Install test libraries
 
+  # Lint before running anything: a lint error fails the run fast. --output-format azure turns each
+  # problem into an error annotation on the run's summary page. Rules are in ruff.toml.
+  - script: .venv/bin/ruff check --output-format azure tests
+    displayName: Lint the tests (Ruff)
+
   - script: .venv/bin/playwright install chromium
     displayName: Install Chromium
 

@@ -16,3 +16,5 @@ junit/
 .DS_Store
 # Output from the Playwright MCP browser (console logs, page snapshots)
 .playwright-mcp/
+# Ruff linter cache
+.ruff_cache/
